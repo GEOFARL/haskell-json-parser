@@ -28,7 +28,7 @@ instance Applicative Parser where
 
 
 jsonNull :: Parser JsonValue
-jsonNull = undefined
+jsonNull = (\_ -> JsonNull) <$> stringP "null"
 
 charP :: Char -> Parser Char
 charP x = Parser f
@@ -38,8 +38,8 @@ charP x = Parser f
         | otherwise = Nothing
     f [] = Nothing
 
--- stringP :: String -> Parser String
--- stringP input = sequenceA $ map charP input
+stringP :: String -> Parser String
+stringP input = sequenceA $ map charP input
 
 jsonValue :: Parser JsonValue
 jsonValue = undefined
