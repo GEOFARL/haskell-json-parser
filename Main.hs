@@ -45,7 +45,7 @@ notNull p = Parser $ \input -> do
     else Just (input', xs)
 
 stringLiteral :: Parser String
-stringLiteral = spanP (/= '"')
+stringLiteral = (charP '"' *> spanP (/= '"') <* charP '"')
 
 ws :: Parser String
 ws = spanP isSpace
@@ -53,12 +53,20 @@ ws = spanP isSpace
 sepBy :: Parser a -> Parser b -> Parser [b]
 sepBy sep element = (:) <$> element <*> many (sep *> element) <|> pure []
 
+jsonObject :: Parser JsonValue
+jsonObject = JsonObject <$> (charP '{' 
+            *> ws *>
+            sepBy (ws *> charP ',' <* ws) pair
+            <* ws
+            <* charP '}')
+  where pair = (\key _ value -> (key, value)) <$> stringLiteral <*> (ws *> charP ':' <* ws) <*> jsonValue
+
 jsonArray :: Parser JsonValue
 jsonArray = JsonArray <$> (charP '[' *> ws *> elements <* ws <* charP ']')
   where elements = sepBy (ws *> charP ',' <* ws) jsonValue
 
 jsonString :: Parser JsonValue
-jsonString = JsonString <$> (charP '"' *> stringLiteral <* charP '"')
+jsonString = JsonString <$> stringLiteral
 
 jsonNumber :: Parser JsonValue
 jsonNumber = f <$> notNull(spanP isDigit) 
@@ -87,7 +95,7 @@ stringP :: String -> Parser String
 stringP input = sequenceA $ map charP input
 
 jsonValue :: Parser JsonValue
-jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString <|> jsonArray
+jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString <|> jsonArray <|> jsonObject
 
 main :: IO ()
 main = undefined
