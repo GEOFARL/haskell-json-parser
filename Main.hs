@@ -1,7 +1,7 @@
 module Main where
-import Control.Applicative (Alternative (empty))
+import Control.Applicative (Alternative (empty, many))
 import GHC.Base (Alternative((<|>)))
-import Data.Char (isDigit)
+import Data.Char (isDigit, isSpace)
 
 data JsonValue = JsonNull
                 | JsonBool Bool
@@ -47,11 +47,21 @@ notNull p = Parser $ \input -> do
 stringLiteral :: Parser String
 stringLiteral = spanP (/= '"')
 
+ws :: Parser String
+ws = spanP isSpace
+
+sepBy :: Parser a -> Parser b -> Parser [b]
+sepBy sep element = (:) <$> element <*> many (sep *> element) <|> pure []
+
+jsonArray :: Parser JsonValue
+jsonArray = JsonArray <$> (charP '[' *> ws *> elements <* ws <* charP ']')
+  where elements = sepBy (ws *> charP ',' <* ws) jsonValue
+
 jsonString :: Parser JsonValue
 jsonString = JsonString <$> (charP '"' *> stringLiteral <* charP '"')
 
 jsonNumber :: Parser JsonValue
-jsonNumber = f <$> notNull(spanP isDigit)
+jsonNumber = f <$> notNull(spanP isDigit) 
   where
     f digits = JsonNumber $ read digits
 
@@ -77,7 +87,7 @@ stringP :: String -> Parser String
 stringP input = sequenceA $ map charP input
 
 jsonValue :: Parser JsonValue
-jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString
+jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString <|> jsonArray
 
 main :: IO ()
 main = undefined
