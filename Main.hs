@@ -8,5 +8,7 @@ data JsonValue = JsonNull
                 | JsonObject [(String, JsonValue)]
                 deriving (Show, Eq)
 
+type Parser a = String -> Maybe (String, a)
+
 main :: IO ()
 main = undefined
