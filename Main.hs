@@ -12,6 +12,12 @@ newtype Parser a = Parser {
   runParser :: String -> Maybe (String, a)
 }
 
+instance Functor Parser where
+  fmap f (Parser p) = Parser $ \input -> do
+    (input', x) <- p input
+    Just (input', f x)  
+
+
 jsonNull :: Parser JsonValue
 jsonNull = undefined
 
@@ -22,6 +28,9 @@ charP x = Parser f
         | y == x = Just(ys, x)
         | otherwise = Nothing
     f [] = Nothing
+
+-- stringP :: String -> Parser String
+-- stringP input = sequenceA $ map charP input
 
 jsonValue :: Parser JsonValue
 jsonValue = undefined
