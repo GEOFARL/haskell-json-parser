@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use lambda-case" #-}
 module Main where
 
 data JsonValue = JsonNull
@@ -8,7 +10,23 @@ data JsonValue = JsonNull
                 | JsonObject [(String, JsonValue)]
                 deriving (Show, Eq)
 
-type Parser a = String -> Maybe (String, a)
+newtype Parser a = Parser {
+  runParser :: String -> Maybe (String, a)
+}
+
+jsonNull :: Parser JsonValue
+jsonNull = undefined
+
+charP :: Char -> Parser Char
+charP x = Parser f
+  where
+    f(y:ys)
+        | y == x = Just(ys, x)
+        | otherwise = Nothing
+    f [] = Nothing
+
+jsonValue :: Parser JsonValue
+jsonValue = undefined
 
 main :: IO ()
 main = undefined
