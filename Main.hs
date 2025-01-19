@@ -44,6 +44,11 @@ notNull p = Parser $ \input -> do
     then Nothing
     else Just (input', xs)
 
+stringLiteral :: Parser String
+stringLiteral = spanP (/= '"')
+
+jsonString :: Parser JsonValue
+jsonString = JsonString <$> (charP '"' *> stringLiteral <* charP '"')
 
 jsonNumber :: Parser JsonValue
 jsonNumber = f <$> notNull(spanP isDigit)
@@ -72,7 +77,7 @@ stringP :: String -> Parser String
 stringP input = sequenceA $ map charP input
 
 jsonValue :: Parser JsonValue
-jsonValue = jsonNull <|> jsonBool <|> jsonNumber
+jsonValue = jsonNull <|> jsonBool <|> jsonNumber <|> jsonString
 
 main :: IO ()
 main = undefined
